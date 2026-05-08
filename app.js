@@ -82,6 +82,10 @@ function renderTodos() {
     const todoText = document.createElement("span");
     todoText.classList.add("todo-item-text");
     todoText.textContent = todo.text;
+    todoText.addEventListener("dblclick", () =>
+      enterEditMode(todoItem, todo, todoText),
+    );
+
 
     const deleteBtn = document.createElement("button");
     deleteBtn.classList.add("delete-btn");
@@ -110,6 +114,56 @@ function deleteTodo(id) {
   todos = todos.filter((todo) => todo.id !== id);
   saveTodos();
   renderTodos();
+}
+
+function updateTodoText(id, text) {
+  todos = todos.map((todo) => {
+    if (todo.id === id) {
+      return { ...todo, text };
+    }
+    return todo;
+  });
+  saveTodos();
+  renderTodos();
+}
+
+function enterEditMode(todoItem, todo, oldTodoText) {
+  const editInput = document.createElement("input");
+  editInput.type = "text";
+  editInput.classList.add("todo-edit-input");
+  editInput.value = todo.text;
+  let finished = false;
+
+  const commitEdit = () => {
+    if (finished) return;
+    finished = true;
+    const newText = editInput.value.trim();
+    if (newText === "") {
+      deleteTodo(todo.id);
+      return;
+    }
+    updateTodoText(todo.id, newText);
+  };
+
+  const cancelEdit = () => {
+    if (finished) return;
+    finished = true;
+    todoItem.replaceChild(oldTodoText, editInput);
+  };
+
+  editInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+      commitEdit();
+    } else if (e.key === "Escape") {
+      cancelEdit();
+    }
+  });
+
+  editInput.addEventListener("blur", commitEdit);
+
+  todoItem.replaceChild(editInput, oldTodoText);
+  editInput.focus();
+  editInput.select();
 }
 
 window.addEventListener("DOMContentLoaded", () => {
